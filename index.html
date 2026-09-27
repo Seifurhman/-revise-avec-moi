@@ -6,8 +6,6 @@
 
   <title>Révise avec moi</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -17,38 +15,38 @@
       margin: 0;
       font-family: Arial, sans-serif;
       background: #f5f7fb;
-      color: #222;
+      color: #202124;
     }
 
     header {
-      background: #4f46e5;
-      color: white;
+      background: #ffffff;
+      padding: 22px 18px;
       text-align: center;
-      padding: 35px 20px;
+      border-bottom: 1px solid #ddd;
     }
 
     header h1 {
-      font-size: 38px;
-      margin: 0 0 10px;
+      margin: 0;
+      font-size: 26px;
     }
 
     header p {
-      font-size: 18px;
-      margin: 0;
+      margin: 8px 0 0;
+      color: #666;
     }
 
     main {
-      max-width: 750px;
-      margin: 25px auto;
-      padding: 0 15px;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
     }
 
     .card {
       background: white;
-      padding: 25px;
-      margin-bottom: 20px;
       border-radius: 18px;
-      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
     }
 
     h2 {
@@ -57,70 +55,81 @@
 
     input[type="file"] {
       width: 100%;
-      padding: 15px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      background: #fafafa;
-    }
-
-    img {
-      width: 100%;
-      margin-top: 15px;
-      border-radius: 12px;
+      padding: 12px;
+      margin: 10px 0;
     }
 
     button {
       width: 100%;
-      margin-top: 15px;
-      padding: 15px;
       border: none;
       border-radius: 12px;
-      background: #4f46e5;
-      color: white;
+      padding: 14px;
       font-size: 17px;
       font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      background: #2563eb;
+      color: white;
     }
 
     button:disabled {
       opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .secondary {
+      background: #64748b;
+    }
+
+    #preview {
+      display: none;
+      width: 100%;
+      max-height: 500px;
+      object-fit: contain;
+      border-radius: 12px;
+      margin-top: 12px;
+    }
+
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      font-size: 18px;
+    }
+
+    #result {
+      white-space: pre-wrap;
+      line-height: 1.6;
     }
 
     textarea {
       width: 100%;
-      min-height: 180px;
-      padding: 15px;
-      border: 1px solid #ddd;
+      min-height: 140px;
+      border: 1px solid #ccc;
       border-radius: 12px;
+      padding: 14px;
       font-size: 16px;
       resize: vertical;
-    }
-
-    .progress {
-      margin-top: 15px;
-      padding: 12px;
-      background: #eef2ff;
-      border-radius: 10px;
-    }
-
-    .result {
-      margin-top: 20px;
-      padding: 20px;
-      background: #f8f9ff;
-      border-radius: 12px;
-      white-space: pre-wrap;
-      line-height: 1.6;
     }
 
     .hidden {
       display: none;
     }
 
-    .question {
-      padding: 15px;
-      margin-top: 12px;
-      background: white;
+    .error {
+      color: #b91c1c;
+      background: #fee2e2;
+      padding: 12px;
       border-radius: 10px;
-      border: 1px solid #ddd;
+      margin-top: 12px;
+    }
+
+    .success {
+      color: #166534;
+      background: #dcfce7;
+      padding: 12px;
+      border-radius: 10px;
+      margin-top: 12px;
     }
   </style>
 </head>
@@ -129,332 +138,303 @@
 
 <header>
   <h1>📚 Révise avec moi</h1>
-  <p>Transforme ton cours en outil de révision</p>
+  <p>Transforme tes cours en fiches de révision</p>
 </header>
 
 <main>
 
-  <!-- PHOTO -->
-  <div class="card">
-
+  <section class="card">
     <h2>📸 Mon cours</h2>
 
     <p>
-      Ajoute une photo de ton cours. L'application va essayer
-      de lire automatiquement le texte.
+      Prends une photo de ton cours ou choisis une image dans tes photos.
     </p>
 
     <input
       type="file"
-      id="photo"
+      id="imageInput"
       accept="image/*"
     >
 
-    <img
-      id="apercu"
-      class="hidden"
-      alt="Photo du cours"
-    >
+    <img id="preview" alt="Aperçu du cours">
 
-    <button
-      id="lireBtn"
-      onclick="lirePhoto()"
-      disabled
-    >
-      🔎 Lire mon cours
+    <button id="readButton" disabled>
+      🤖 Comprendre mon cours
     </button>
 
-    <div id="progression" class="progress hidden">
-      ⏳ Préparation...
+    <div id="loading">
+      ⏳ L’IA analyse ton cours...<br>
+      Cela peut prendre quelques secondes.
     </div>
 
-  </div>
+    <div id="message"></div>
+  </section>
 
+  <section class="card hidden" id="resultCard">
+    <h2>📝 Mon cours compris</h2>
 
-  <!-- TEXTE -->
-  <div class="card">
+    <div id="result"></div>
+  </section>
 
-    <h2>📝 Texte de mon cours</h2>
-
-    <textarea
-      id="texteCours"
-      placeholder="Le texte de ta photo apparaîtra ici..."
-    ></textarea>
-
-    <button onclick="creerFiche()">
-      🧠 Créer ma fiche de révision
-    </button>
-
-  </div>
-
-
-  <!-- FICHE -->
-  <div
-    id="ficheCard"
-    class="card hidden"
-  >
-
+  <section class="card hidden" id="revisionCard">
     <h2>📚 Ma fiche de révision</h2>
 
-    <div
-      id="fiche"
-      class="result"
-    ></div>
+    <div id="revision"></div>
+  </section>
 
-  </div>
-
-
-  <!-- QUESTIONS -->
-  <div
-    id="questionsCard"
-    class="card hidden"
-  >
-
+  <section class="card hidden" id="questionsCard">
     <h2>❓ Questions pour réviser</h2>
 
     <div id="questions"></div>
+  </section>
 
-  </div>
-
-
-  <!-- NOTES -->
-  <div class="card">
-
-    <h2>✏️ Mes notes personnelles</h2>
+  <section class="card">
+    <h2>📖 Mes notes</h2>
 
     <textarea
       id="notes"
-      placeholder="Écris ici tes propres notes..."
+      placeholder="Écris tes propres notes ici..."
     ></textarea>
 
-    <button onclick="sauvegarderNotes()">
-      💾 Sauvegarder mes notes
+    <button class="secondary" id="saveNotes">
+      💾 Enregistrer mes notes
     </button>
 
-    <p id="message"></p>
-
-  </div>
+    <div id="notesMessage"></div>
+  </section>
 
 </main>
 
-
 <script>
+  const imageInput = document.getElementById("imageInput");
+  const preview = document.getElementById("preview");
+  const readButton = document.getElementById("readButton");
 
-  const photo = document.getElementById("photo");
-  const apercu = document.getElementById("apercu");
-  const lireBtn = document.getElementById("lireBtn");
-  const progression = document.getElementById("progression");
-  const texteCours = document.getElementById("texteCours");
+  const loading = document.getElementById("loading");
+  const message = document.getElementById("message");
 
+  const resultCard = document.getElementById("resultCard");
+  const revisionCard = document.getElementById("revisionCard");
+  const questionsCard = document.getElementById("questionsCard");
 
-  /*
-   * Quand l'utilisateur choisit une photo
-   */
-  photo.addEventListener("change", function() {
+  const result = document.getElementById("result");
+  const revision = document.getElementById("revision");
+  const questions = document.getElementById("questions");
 
-    const fichier = photo.files[0];
+  const notes = document.getElementById("notes");
+  const saveNotes = document.getElementById("saveNotes");
+  const notesMessage = document.getElementById("notesMessage");
 
-    if (!fichier) {
+  let selectedFile = null;
+
+  imageInput.addEventListener("change", function () {
+
+    selectedFile = this.files[0];
+
+    if (!selectedFile) {
+      readButton.disabled = true;
+      preview.style.display = "none";
       return;
     }
 
-    apercu.src = URL.createObjectURL(fichier);
-    apercu.classList.remove("hidden");
+    const reader = new FileReader();
 
-    lireBtn.disabled = false;
+    reader.onload = function(event) {
+      preview.src = event.target.result;
+      preview.style.display = "block";
+    };
+
+    reader.readAsDataURL(selectedFile);
+
+    readButton.disabled = false;
+    message.innerHTML = "";
+  });
+
+
+  function resizeImage(file) {
+
+    return new Promise((resolve, reject) => {
+
+      const reader = new FileReader();
+
+      reader.onload = function(event) {
+
+        const img = new Image();
+
+        img.onload = function() {
+
+          const maxSize = 1600;
+
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxSize || height > maxSize) {
+
+            if (width > height) {
+              height = Math.round(height * maxSize / width);
+              width = maxSize;
+            } else {
+              width = Math.round(width * maxSize / height);
+              height = maxSize;
+            }
+          }
+
+          const canvas = document.createElement("canvas");
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedImage =
+            canvas.toDataURL("image/jpeg", 0.75);
+
+          resolve(compressedImage);
+        };
+
+        img.onerror = reject;
+
+        img.src = event.target.result;
+      };
+
+      reader.onerror = reject;
+
+      reader.readAsDataURL(file);
+    });
+  }
+
+
+  readButton.addEventListener("click", async function() {
+
+    if (!selectedFile) {
+      return;
+    }
+
+    readButton.disabled = true;
+
+    loading.style.display = "block";
+    message.innerHTML = "";
+
+    resultCard.classList.add("hidden");
+    revisionCard.classList.add("hidden");
+    questionsCard.classList.add("hidden");
+
+    try {
+
+      const image = await resizeImage(selectedFile);
+
+      const response = await fetch("/api/chat", {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          image: image
+        })
+      });
+
+
+      const data = await response.json();
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.error || "Une erreur est survenue."
+        );
+      }
+
+
+      if (!data.text) {
+
+        throw new Error(
+          "L'IA n'a pas retourné de texte."
+        );
+      }
+
+
+      result.textContent = data.text;
+
+      resultCard.classList.remove("hidden");
+
+
+      revision.innerHTML =
+        "<p>À partir de ton cours, voici les éléments importants à retenir :</p>" +
+        "<p>" + escapeHtml(data.text) + "</p>";
+
+      revisionCard.classList.remove("hidden");
+
+
+      questions.innerHTML =
+        "<p>Relis ton cours puis essaie de répondre à ces questions :</p>" +
+        "<ol>" +
+        "<li>Quels sont les principaux éléments à retenir ?</li>" +
+        "<li>Peux-tu expliquer le sujet avec tes propres mots ?</li>" +
+        "<li>Quels sont les mots ou notions importantes ?</li>" +
+        "</ol>";
+
+      questionsCard.classList.remove("hidden");
+
+
+      message.innerHTML =
+        '<div class="success">✅ Ton cours a été analysé !</div>';
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      message.innerHTML =
+        '<div class="error">❌ ' +
+        escapeHtml(error.message) +
+        '</div>';
+    }
+
+    finally {
+
+      loading.style.display = "none";
+
+      readButton.disabled = false;
+    }
 
   });
 
 
-  /*
-   * Lecture de la photo avec OCR
-   */
-  async function lirePhoto() {
+  function escapeHtml(text) {
 
-    const fichier = photo.files[0];
+    const div = document.createElement("div");
 
-    if (!fichier) {
-      alert("Choisis d'abord une photo.");
-      return;
-    }
+    div.textContent = text;
 
-    lireBtn.disabled = true;
-
-    progression.classList.remove("hidden");
-    progression.textContent =
-      "⏳ Lecture du cours en cours...";
-
-
-    try {
-
-      const worker = await Tesseract.createWorker("fra");
-
-      const resultat = await worker.recognize(fichier);
-
-      const texte = resultat.data.text;
-
-      await worker.terminate();
-
-      texteCours.value = texte;
-
-      progression.textContent =
-        "✅ Lecture terminée !";
-
-      lireBtn.disabled = false;
-
-      creerFiche();
-
-    } catch (erreur) {
-
-      console.error(erreur);
-
-      progression.textContent =
-        "❌ Impossible de lire cette photo.";
-
-      lireBtn.disabled = false;
-
-    }
-
+    return div.innerHTML;
   }
 
 
-  /*
-   * Création d'une fiche simple
-   */
-  function creerFiche() {
-
-    const texte = texteCours.value.trim();
-
-    if (!texte) {
-      alert("Ajoute d'abord un cours.");
-      return;
-    }
-
-    const lignes = texte
-      .split(/\n+/)
-      .map(ligne => ligne.trim())
-      .filter(ligne => ligne.length > 20);
+  notes.value =
+    localStorage.getItem("revise_notes") || "";
 
 
-    let fiche = "";
-
-    fiche += "📌 POINTS IMPORTANTS\n\n";
-
-
-    if (lignes.length === 0) {
-
-      fiche += texte;
-
-    } else {
-
-      const maximum = Math.min(lignes.length, 12);
-
-      for (let i = 0; i < maximum; i++) {
-
-        fiche += "• " + lignes[i] + "\n";
-
-      }
-
-    }
-
-
-    fiche += "\n\n🧠 À RETENIR\n\n";
-
-    fiche +=
-      "Relis les points importants et essaie de les expliquer avec tes propres mots.";
-
-
-    document.getElementById("fiche").textContent = fiche;
-
-    document
-      .getElementById("ficheCard")
-      .classList.remove("hidden");
-
-
-    creerQuestions(lignes);
-
-  }
-
-
-  /*
-   * Création de questions simples
-   */
-  function creerQuestions(lignes) {
-
-    const zone = document.getElementById("questions");
-
-    zone.innerHTML = "";
-
-
-    if (lignes.length === 0) {
-
-      zone.innerHTML =
-        "<p>Il n'y a pas assez de texte pour créer des questions.</p>";
-
-    } else {
-
-      const maximum = Math.min(lignes.length, 5);
-
-      for (let i = 0; i < maximum; i++) {
-
-        const div = document.createElement("div");
-
-        div.className = "question";
-
-        div.innerHTML =
-          "<strong>Question " + (i + 1) + "</strong><br><br>" +
-          "👉 Explique ce que signifie :<br><br>" +
-          lignes[i];
-
-        zone.appendChild(div);
-
-      }
-
-    }
-
-
-    document
-      .getElementById("questionsCard")
-      .classList.remove("hidden");
-
-  }
-
-
-  /*
-   * Sauvegarde des notes
-   */
-  function sauvegarderNotes() {
-
-    const notes =
-      document.getElementById("notes").value;
+  saveNotes.addEventListener("click", function() {
 
     localStorage.setItem(
-      "mesNotes",
-      notes
+      "revise_notes",
+      notes.value
     );
 
-    document.getElementById("message").textContent =
-      "✅ Tes notes ont été sauvegardées !";
+    notesMessage.innerHTML =
+      '<div class="success">✅ Notes enregistrées !</div>';
 
-  }
+    setTimeout(() => {
+      notesMessage.innerHTML = "";
+    }, 2000);
 
-
-  /*
-   * Récupération des notes sauvegardées
-   */
-  window.onload = function() {
-
-    const notes =
-      localStorage.getItem("mesNotes");
-
-    if (notes) {
-
-      document.getElementById("notes").value =
-        notes;
-
-    }
-
-  };
+  });
 
 </script>
 
