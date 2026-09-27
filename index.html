@@ -3,12 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Révise avec moi</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
+      font-family: Arial, sans-serif;
       background: #f5f7fb;
       color: #222;
     }
@@ -16,133 +23,440 @@
     header {
       background: #4f46e5;
       color: white;
-      padding: 25px 20px;
       text-align: center;
+      padding: 35px 20px;
     }
 
     header h1 {
-      margin: 0 0 8px;
+      font-size: 38px;
+      margin: 0 0 10px;
+    }
+
+    header p {
+      font-size: 18px;
+      margin: 0;
     }
 
     main {
-      max-width: 700px;
+      max-width: 750px;
       margin: 25px auto;
       padding: 0 15px;
     }
 
     .card {
       background: white;
-      padding: 20px;
+      padding: 25px;
       margin-bottom: 20px;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      border-radius: 18px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      background: #fafafa;
+    }
+
+    img {
+      width: 100%;
+      margin-top: 15px;
+      border-radius: 12px;
     }
 
     button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
       background: #4f46e5;
       color: white;
-      border: none;
-      padding: 13px 18px;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
+      font-size: 17px;
+      font-weight: bold;
     }
 
-    button:hover {
-      background: #3730a3;
+    button:disabled {
+      opacity: 0.5;
     }
 
-    input, textarea {
+    textarea {
       width: 100%;
-      box-sizing: border-box;
-      padding: 12px;
-      margin: 10px 0;
+      min-height: 180px;
+      padding: 15px;
       border: 1px solid #ddd;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 16px;
+      resize: vertical;
+    }
+
+    .progress {
+      margin-top: 15px;
+      padding: 12px;
+      background: #eef2ff;
+      border-radius: 10px;
     }
 
     .result {
-      margin-top: 15px;
+      margin-top: 20px;
+      padding: 20px;
+      background: #f8f9ff;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .question {
       padding: 15px;
-      background: #eef2ff;
+      margin-top: 12px;
+      background: white;
       border-radius: 10px;
+      border: 1px solid #ddd;
     }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <h1>📚 Révise avec moi</h1>
-    <p>Ton application pour réviser plus facilement</p>
-  </header>
+<header>
+  <h1>📚 Révise avec moi</h1>
+  <p>Transforme ton cours en outil de révision</p>
+</header>
 
-  <main>
-<div class="card">
-  <h2>📸 Mes photos de cours</h2>
-  <p>Ajoute une photo de ton cours.</p>
+<main>
 
-  <input type="file" accept="image/*"
-    onchange="const f=this.files[0]; if(f){const i=document.getElementById('apercu'); i.src=URL.createObjectURL(f); i.style.display='block';}">
+  <!-- PHOTO -->
+  <div class="card">
 
-  <img id="apercu"
-    style="display:none; width:100%; margin-top:15px; border-radius:10px;">
-</div>
-    <div class="card">
-      <h2>📝 Mes notes</h2>
+    <h2>📸 Mon cours</h2>
 
-      <textarea id="notes" rows="6"
-        placeholder="Écris ou colle ici ton cours..."></textarea>
+    <p>
+      Ajoute une photo de ton cours. L'application va essayer
+      de lire automatiquement le texte.
+    </p>
 
-      <button onclick="sauvegarderNotes()">
-        💾 Sauvegarder mes notes
-      </button>
+    <input
+      type="file"
+      id="photo"
+      accept="image/*"
+    >
 
-      <div id="message"></div>
+    <img
+      id="apercu"
+      class="hidden"
+      alt="Photo du cours"
+    >
+
+    <button
+      id="lireBtn"
+      onclick="lirePhoto()"
+      disabled
+    >
+      🔎 Lire mon cours
+    </button>
+
+    <div id="progression" class="progress hidden">
+      ⏳ Préparation...
     </div>
 
-    <div class="card">
-      <h2>🧠 Petit quiz</h2>
+  </div>
 
-      <p><strong>Quelle est la meilleure façon de réviser régulièrement ?</strong></p>
 
-      <button onclick="repondre('bonne')">Réviser un peu chaque jour</button>
-      <button onclick="repondre('mauvaise')">Tout apprendre la veille</button>
+  <!-- TEXTE -->
+  <div class="card">
 
-      <div id="resultat" class="result"></div>
-    </div>
+    <h2>📝 Texte de mon cours</h2>
 
-  </main>
+    <textarea
+      id="texteCours"
+      placeholder="Le texte de ta photo apparaîtra ici..."
+    ></textarea>
 
-  <script>
-    function sauvegarderNotes() {
-      const notes = document.getElementById("notes").value;
+    <button onclick="creerFiche()">
+      🧠 Créer ma fiche de révision
+    </button>
 
-      localStorage.setItem("mesNotes", notes);
+  </div>
 
-      document.getElementById("message").innerHTML =
-        "✅ Tes notes ont été sauvegardées !";
+
+  <!-- FICHE -->
+  <div
+    id="ficheCard"
+    class="card hidden"
+  >
+
+    <h2>📚 Ma fiche de révision</h2>
+
+    <div
+      id="fiche"
+      class="result"
+    ></div>
+
+  </div>
+
+
+  <!-- QUESTIONS -->
+  <div
+    id="questionsCard"
+    class="card hidden"
+  >
+
+    <h2>❓ Questions pour réviser</h2>
+
+    <div id="questions"></div>
+
+  </div>
+
+
+  <!-- NOTES -->
+  <div class="card">
+
+    <h2>✏️ Mes notes personnelles</h2>
+
+    <textarea
+      id="notes"
+      placeholder="Écris ici tes propres notes..."
+    ></textarea>
+
+    <button onclick="sauvegarderNotes()">
+      💾 Sauvegarder mes notes
+    </button>
+
+    <p id="message"></p>
+
+  </div>
+
+</main>
+
+
+<script>
+
+  const photo = document.getElementById("photo");
+  const apercu = document.getElementById("apercu");
+  const lireBtn = document.getElementById("lireBtn");
+  const progression = document.getElementById("progression");
+  const texteCours = document.getElementById("texteCours");
+
+
+  /*
+   * Quand l'utilisateur choisit une photo
+   */
+  photo.addEventListener("change", function() {
+
+    const fichier = photo.files[0];
+
+    if (!fichier) {
+      return;
     }
 
-    function repondre(reponse) {
-      const resultat = document.getElementById("resultat");
+    apercu.src = URL.createObjectURL(fichier);
+    apercu.classList.remove("hidden");
 
-      if (reponse === "bonne") {
-        resultat.innerHTML = "🎉 Bravo ! C'est une bonne méthode.";
-      } else {
-        resultat.innerHTML = "💡 Essaie plutôt de réviser régulièrement.";
-      }
+    lireBtn.disabled = false;
+
+  });
+
+
+  /*
+   * Lecture de la photo avec OCR
+   */
+  async function lirePhoto() {
+
+    const fichier = photo.files[0];
+
+    if (!fichier) {
+      alert("Choisis d'abord une photo.");
+      return;
     }
 
-    window.onload = function() {
-      const notes = localStorage.getItem("mesNotes");
+    lireBtn.disabled = true;
 
-      if (notes) {
-        document.getElementById("notes").value = notes;
+    progression.classList.remove("hidden");
+    progression.textContent =
+      "⏳ Lecture du cours en cours...";
+
+
+    try {
+
+      const worker = await Tesseract.createWorker("fra");
+
+      const resultat = await worker.recognize(fichier);
+
+      const texte = resultat.data.text;
+
+      await worker.terminate();
+
+      texteCours.value = texte;
+
+      progression.textContent =
+        "✅ Lecture terminée !";
+
+      lireBtn.disabled = false;
+
+      creerFiche();
+
+    } catch (erreur) {
+
+      console.error(erreur);
+
+      progression.textContent =
+        "❌ Impossible de lire cette photo.";
+
+      lireBtn.disabled = false;
+
+    }
+
+  }
+
+
+  /*
+   * Création d'une fiche simple
+   */
+  function creerFiche() {
+
+    const texte = texteCours.value.trim();
+
+    if (!texte) {
+      alert("Ajoute d'abord un cours.");
+      return;
+    }
+
+    const lignes = texte
+      .split(/\n+/)
+      .map(ligne => ligne.trim())
+      .filter(ligne => ligne.length > 20);
+
+
+    let fiche = "";
+
+    fiche += "📌 POINTS IMPORTANTS\n\n";
+
+
+    if (lignes.length === 0) {
+
+      fiche += texte;
+
+    } else {
+
+      const maximum = Math.min(lignes.length, 12);
+
+      for (let i = 0; i < maximum; i++) {
+
+        fiche += "• " + lignes[i] + "\n";
+
       }
-    };
-  </script>
+
+    }
+
+
+    fiche += "\n\n🧠 À RETENIR\n\n";
+
+    fiche +=
+      "Relis les points importants et essaie de les expliquer avec tes propres mots.";
+
+
+    document.getElementById("fiche").textContent = fiche;
+
+    document
+      .getElementById("ficheCard")
+      .classList.remove("hidden");
+
+
+    creerQuestions(lignes);
+
+  }
+
+
+  /*
+   * Création de questions simples
+   */
+  function creerQuestions(lignes) {
+
+    const zone = document.getElementById("questions");
+
+    zone.innerHTML = "";
+
+
+    if (lignes.length === 0) {
+
+      zone.innerHTML =
+        "<p>Il n'y a pas assez de texte pour créer des questions.</p>";
+
+    } else {
+
+      const maximum = Math.min(lignes.length, 5);
+
+      for (let i = 0; i < maximum; i++) {
+
+        const div = document.createElement("div");
+
+        div.className = "question";
+
+        div.innerHTML =
+          "<strong>Question " + (i + 1) + "</strong><br><br>" +
+          "👉 Explique ce que signifie :<br><br>" +
+          lignes[i];
+
+        zone.appendChild(div);
+
+      }
+
+    }
+
+
+    document
+      .getElementById("questionsCard")
+      .classList.remove("hidden");
+
+  }
+
+
+  /*
+   * Sauvegarde des notes
+   */
+  function sauvegarderNotes() {
+
+    const notes =
+      document.getElementById("notes").value;
+
+    localStorage.setItem(
+      "mesNotes",
+      notes
+    );
+
+    document.getElementById("message").textContent =
+      "✅ Tes notes ont été sauvegardées !";
+
+  }
+
+
+  /*
+   * Récupération des notes sauvegardées
+   */
+  window.onload = function() {
+
+    const notes =
+      localStorage.getItem("mesNotes");
+
+    if (notes) {
+
+      document.getElementById("notes").value =
+        notes;
+
+    }
+
+  };
+
+</script>
 
 </body>
 </html>
