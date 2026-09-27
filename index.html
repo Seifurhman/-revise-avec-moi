@@ -79,7 +79,16 @@
   </header>
 
   <main>
+<div class="card">
+  <h2>📸 Mes photos de cours</h2>
+  <p>Ajoute une photo de ton cours.</p>
 
+  <input type="file" accept="image/*"
+    onchange="const f=this.files[0]; if(f){const i=document.getElementById('apercu'); i.src=URL.createObjectURL(f); i.style.display='block';}">
+
+  <img id="apercu"
+    style="display:none; width:100%; margin-top:15px; border-radius:10px;">
+</div>
     <div class="card">
       <h2>📝 Mes notes</h2>
 
