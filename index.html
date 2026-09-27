@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Révise avec moi</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f7fb;
+      color: #222;
+    }
+
+    header {
+      background: #4f46e5;
+      color: white;
+      padding: 25px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+    }
+
+    main {
+      max-width: 700px;
+      margin: 25px auto;
+      padding: 0 15px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    button {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 13px 18px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #3730a3;
+    }
+
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 15px;
+      background: #eef2ff;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>📚 Révise avec moi</h1>
+    <p>Ton application pour réviser plus facilement</p>
+  </header>
+
+  <main>
+
+    <div class="card">
+      <h2>📝 Mes notes</h2>
+
+      <textarea id="notes" rows="6"
+        placeholder="Écris ou colle ici ton cours..."></textarea>
+
+      <button onclick="sauvegarderNotes()">
+        💾 Sauvegarder mes notes
+      </button>
+
+      <div id="message"></div>
+    </div>
+
+    <div class="card">
+      <h2>🧠 Petit quiz</h2>
+
+      <p><strong>Quelle est la meilleure façon de réviser régulièrement ?</strong></p>
+
+      <button onclick="repondre('bonne')">Réviser un peu chaque jour</button>
+      <button onclick="repondre('mauvaise')">Tout apprendre la veille</button>
+
+      <div id="resultat" class="result"></div>
+    </div>
+
+  </main>
+
+  <script>
+    function sauvegarderNotes() {
+      const notes = document.getElementById("notes").value;
+
+      localStorage.setItem("mesNotes", notes);
+
+      document.getElementById("message").innerHTML =
+        "✅ Tes notes ont été sauvegardées !";
+    }
+
+    function repondre(reponse) {
+      const resultat = document.getElementById("resultat");
+
+      if (reponse === "bonne") {
+        resultat.innerHTML = "🎉 Bravo ! C'est une bonne méthode.";
+      } else {
+        resultat.innerHTML = "💡 Essaie plutôt de réviser régulièrement.";
+      }
+    }
+
+    window.onload = function() {
+      const notes = localStorage.getItem("mesNotes");
+
+      if (notes) {
+        document.getElementById("notes").value = notes;
+      }
+    };
+  </script>
+
+</body>
+</html>
